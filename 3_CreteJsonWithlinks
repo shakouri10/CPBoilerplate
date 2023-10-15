@@ -1,0 +1,89 @@
+import requests
+from bs4 import BeautifulSoup
+import json
+import logging
+
+# Setup logging
+logging.basicConfig(filename='extraction.log', level=logging.INFO)
+
+def extract_blog_content(url):
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Extract data (considering your provided code and adding some robustness)
+        title = soup.find('h1').get_text(strip=True) if soup.find('h1') else ""
+
+        description_section = soup.find('div', class_='post-content')
+        description = " ".join([p.get_text(strip=True) for p in description_section.find_all('p')]) if description_section else ""
+
+        header_picture_url = soup.find('img')['src'] if soup.find('img') else ""
+
+        tags = [tag.get_text(strip=True) for tag in soup.find_all('a', rel='tag')] if soup.find_all('a', rel='tag') else []
+
+        # Extract body sections
+        body_sections = []
+        subheadings = soup.find_all(['h2', 'h3', 'h4'])
+
+        for subheading in subheadings:
+            sub_heading = subheading.get_text(strip=True)
+            body_texts = []
+
+            for sibling in subheading.find_next_siblings(limit=5):
+                if sibling.name and 'h' in sibling.name:
+                    break
+                elif sibling.name == 'p':
+                    body_texts.append({"type": "text", "content": sibling.get_text(strip=True)})
+
+            body_sections.append({
+                "sub-heading": sub_heading,
+                "body": body_texts
+            })
+
+        # Creating the JSON structure
+        json_structure = {
+            "url": url,
+            "title": title,
+            "description": description,
+            "header_picture_url": header_picture_url,
+            "tags": tags,
+            "body": body_sections
+        }
+
+        return json_structure
+
+    except Exception as e:
+        logging.error(f"Error extracting content from {url}: {str(e)}")
+        return None
+
+
+def save_to_file(data, filename='extractedData.json'):
+    try:
+        with open(filename, 'r', encoding='utf-8') as file:
+            current_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        current_data = []
+
+    current_data.append(data)
+
+    with open(filename, 'w', encoding='utf-8') as file:
+        json.dump(current_data, file, ensure_ascii=False, indent=4)
+
+
+# Read URLs from file
+with open('validated_links.txt', 'r') as f:
+    urls = [line.strip() for line in f]
+
+index = 0
+for url in urls:
+    try:
+        json_result = extract_blog_content(url)
+        
+        # Basic Validator: Check if body is not empty and title exists
+        if json_result and json_result["body"] and json_result["title"]:
+            save_to_file(json_result)
+            index += 1
+    except Exception as e:
+        logging.error(f"Error occurred at index {index} for URL: {url}. Error: {e}")
+
+# Note: The code might need further refinement and adjustments based on actual data and specific requirements.
