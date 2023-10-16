@@ -1,89 +1,128 @@
 import requests
 from bs4 import BeautifulSoup
 import json
-import logging
 
-# Setup logging
-logging.basicConfig(filename='extraction.log', level=logging.INFO)
+def extract_blog_content_v4(url):
+    response = requests.get(url)
+    html_content = response.text
+    soup = BeautifulSoup(html_content, 'html.parser')
 
-def extract_blog_content(url):
-    try:
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'html.parser')
+    # Extract title
+    title = soup.find('h1', class_='entry-title').text if soup.find('h1', class_='entry-title') else ""
 
-        # Extract data (considering your provided code and adding some robustness)
-        title = soup.find('h1').get_text(strip=True) if soup.find('h1') else ""
+    # Extract description
+    description_section = soup.select_one('.post-entry-content.abar-content-box-style-def')
+    description_elements = description_section.find_all('p', recursive=False) if description_section else []
+    first_h2 = description_section.find(['h2', 'h3', 'h4']) if description_section else None
+    h2_index = len(description_elements)
+    if first_h2:
+        h2_index = description_elements.index(first_h2.find_previous('p'))
+    description = " ".join([elem.text for elem in description_elements[:h2_index]])
 
-        description_section = soup.find('div', class_='post-content')
-        description = " ".join([p.get_text(strip=True) for p in description_section.find_all('p')]) if description_section else ""
+    # Corrected header picture URL extraction
+    header_picture_url = soup.select_one('.single-post-thumbnail-box.border-radius-back-24 img')['src'] if soup.select_one('.single-post-thumbnail-box.border-radius-back-24 img') else ""
+    
+    # Extract tags
+    tags = [tag.text.strip() for tag in soup.select('.cats-links ul li')] if soup.select('.cats-links ul li') else []
 
-        header_picture_url = soup.find('img')['src'] if soup.find('img') else ""
+    # Extract body sections, images and lists
+    body_sections = []
+    body_images = []  # List to store images from the content
+    body_content = soup.select_one('.post-entry-content.abar-content-box-style-def')
+    if body_content:
+        subheadings = body_content.find_all(['h2', 'h3', 'h4', 'figure', 'ul'])
+        for i, subheading_element in enumerate(subheadings):
+            if subheading_element.name in ['h2', 'h3', 'h4']:
+                sub_heading = subheading_element.text.strip()
+                body_texts = []
+                element = subheading_element.next_sibling
+                while element and not (element.name and element.name in ['h2', 'h3', 'h4', 'figure', 'ul']):
+                    if element.name == 'p' and element.find('img'):
+                        img_src = element.find('img')['src']
+                        body_texts.append({"type": "image", "content": img_src, "content_element": element.find('img').name})
+                        body_images.append(img_src)
+                    elif element.name == 'ul':
+                        list_items = []
+                        for li in element.find_all('li'):
+                            list_items.append(li.text.strip())
+                        body_texts.append({"type": "list", "content": list_items, "content_element": "ul"})
+                    elif element.name == 'ol':
+                        list_items = []
+                        for li in element.find_all('li'):
+                            list_items.append(li.text.strip())
+                        body_texts.append({"type": "list", "content": list_items, "content_element": "ol"})    
+                    elif element.name:
+                        if not element.name == "div":
+                            body_texts.append({"type": "text", "content": element.text.strip(), "content_element": element.name})
+                    element = element.next_sibling
+                body_sections.append({
+                    "sub-heading": sub_heading,
+                    "body": body_texts
+                })
+            elif subheading_element.name == 'figure':
+                figure_content = []
+                img = subheading_element.find('img')
+                if img and img['src']:
+                    body_images.append(img['src'])
+                    figure_content.append({"type": "image", "content": img['src'], "content_element": "img"})
+                figcaption = subheading_element.find('figcaption')
+                if figcaption:
+                    figure_content.append({"type": "text", "content": figcaption.text, "content_element": "figcaption"})
+                body_sections.append({"type": "figure", "body": figure_content})
+            elif subheading_element.name == 'ul':
+                list_items = []
+                for li in subheading_element.find_all('li'):
+                    list_items.append(li.text.strip())
+                body_sections.append({"type": "list", "content": list_items, "content_element": "ul"})
+            elif element.name == 'ol':
+                list_items = []
+                for li in element.find_all('li'):
+                    list_items.append(li.text.strip())
+                body_texts.append({"type": "list", "content": list_items, "content_element": "ol"})    
 
-        tags = [tag.get_text(strip=True) for tag in soup.find_all('a', rel='tag')] if soup.find_all('a', rel='tag') else []
+    # Extract a representative image for WordPress
+    wp_image = "https://petpors.com/" + body_images[0] if body_images and body_images[0].startswith('../') else body_images[0] if body_images else ""
 
-        # Extract body sections
-        body_sections = []
-        subheadings = soup.find_all(['h2', 'h3', 'h4'])
+    # Creating the JSON structure
+    json_structure = {
+        "url": url,
+        "title": title,
+        "description": description,
+        "header_picture_url": header_picture_url,
+        "tags": tags,
+        "body": body_sections,
+        "wp_image": wp_image
+    }
 
-        for subheading in subheadings:
-            sub_heading = subheading.get_text(strip=True)
-            body_texts = []
+    return json_structure
 
-            for sibling in subheading.find_next_siblings(limit=5):
-                if sibling.name and 'h' in sibling.name:
-                    break
-                elif sibling.name == 'p':
-                    body_texts.append({"type": "text", "content": sibling.get_text(strip=True)})
-
-            body_sections.append({
-                "sub-heading": sub_heading,
-                "body": body_texts
-            })
-
-        # Creating the JSON structure
-        json_structure = {
-            "url": url,
-            "title": title,
-            "description": description,
-            "header_picture_url": header_picture_url,
-            "tags": tags,
-            "body": body_sections
-        }
-
-        return json_structure
-
-    except Exception as e:
-        logging.error(f"Error extracting content from {url}: {str(e)}")
-        return None
-
-
-def save_to_file(data, filename='extractedData.json'):
+def save_to_file_v4(data):
+    filename = "Extracted_v4.json"
     try:
         with open(filename, 'r', encoding='utf-8') as file:
             current_data = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
         current_data = []
 
-    current_data.append(data)
+    # Check if the URL already exists in the data to prevent duplication
+    existing_urls = [entry["url"] for entry in current_data]
+    if data["url"] not in existing_urls:
+        current_data.append(data)
 
-    with open(filename, 'w', encoding='utf-8') as file:
-        json.dump(current_data, file, ensure_ascii=False, indent=4)
+        with open(filename, 'w', encoding='utf-8') as file:
+            json.dump(current_data, file, ensure_ascii=False, indent=4)
 
-
-# Read URLs from file
-with open('validated_links.txt', 'r') as f:
+# Read URLs from the validated_links_v2.txt file
+with open('validated_links.txt', 'r') as f:  # Use the validated_links_v2.txt file
     urls = [line.strip() for line in f]
 
 index = 0
 for url in urls:
     try:
-        json_result = extract_blog_content(url)
-        
-        # Basic Validator: Check if body is not empty and title exists
-        if json_result and json_result["body"] and json_result["title"]:
-            save_to_file(json_result)
-            index += 1
+        json_result = extract_blog_content_v4(url)
+        if not json_result["body"]:
+            continue
+        save_to_file_v4(json_result)
+        index += 1
     except Exception as e:
-        logging.error(f"Error occurred at index {index} for URL: {url}. Error: {e}")
-
-# Note: The code might need further refinement and adjustments based on actual data and specific requirements.
+        print(f"Error occurred at index {index} for URL: {url}. Error: {e}")
