@@ -1,0 +1,15 @@
+User-agent: *
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+Disallow: /cart/*
+Disallow: /checkout/*
+Disallow: /panel/*
+Disallow: /my_account/*
+
+# ALL URL Parameters:
+Disallow: *?login=true*
+Disallow: *?redirect_to*
+Disallow: *?vet_id*
+
+# Sitemap File:
+Sitemap: https://petpors.com/sitemap_index.xml

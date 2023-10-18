@@ -1,4 +1,3 @@
 http://localhost:9090/flea-and-tick-in-dogs/
-http://localhost:9090/toyger-cat-breed/
-http://localhost:9090/training-dog-not-to-eat-something/
-http://localhost:9090/play-with-cat/
+http://localhost:9090/cat-vomiting/
+http://localhost:9090/samoyed-dog/
