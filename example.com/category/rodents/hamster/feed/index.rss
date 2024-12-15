@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	 xmlns:media="http://search.yahoo.com/mrss/" >
+
+<channel>
+	<title>همستر - پت پرس</title>
+	<atom:link href="https://petpors.com/category/rodents/hamster/feed/" rel="self" type="application/rss+xml" />
+	<link>https://petpors.com/category/rodents/hamster/</link>
+	<description>خدمات آنلاین حیوانات خانگی</description>
+	<lastBuildDate>Sun, 26 Jun 2022 07:01:31 +0000</lastBuildDate>
+	<language>fa-IR</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=5.8.7</generator>
+	<item>
+		<title>همه چیز درباره همستر، حیوان خانگی کوچولو و بامزه!</title>
+		<link>https://petpors.com/hamster-maintenance/</link>
+					<comments>https://petpors.com/hamster-maintenance/#comments</comments>
+		
+		<dc:creator><![CDATA[ادمین پت پرس]]></dc:creator>
+		<pubDate>Sat, 16 May 2020 12:30:24 +0000</pubDate>
+				<category><![CDATA[جوندگان]]></category>
+		<category><![CDATA[همستر]]></category>
+		<category><![CDATA[نگهداری حیوانات خانگی]]></category>
+		<guid isPermaLink="false">https://petpors.com/?p=27460</guid>
+
+					<description><![CDATA[<p>همسترها موجوداتی کوچولو و بامزه هستن که نگهداری نسبتا راحتی هم دارن و به همین دلیل مثل خوکچه هندی جزء حیوانات خانگی بی‌دردسر به حساب میان. اما قبل از اینکه برای فرزندتون یا خودتون یه همستر خوشگل و شیطون بخرید باید در مورد نگهداری از همستر و لوازم و وسایلی که برای مراقبت ازش نیاز دارید اطلاعاتی داشته باشید. ما در این مطلب ۰ تا ۱۰۰ نگهداری از همستر رو بهتون یاد میدیم و شما</p>
+<p>نوشته <a rel="nofollow" href="https://petpors.com/hamster-maintenance/">همه چیز درباره همستر، حیوان خانگی کوچولو و بامزه!</a> اولین بار در <a rel="nofollow" href="https://petpors.com">پت پرس</a>. پدیدار شد.</p>
+]]></description>
+		
+					<wfw:commentRss>https://petpors.com/hamster-maintenance/feed/</wfw:commentRss>
+			<slash:comments>35</slash:comments>
+		
+		
+		
+	</item>
+	</channel>
+</rss>
